@@ -1,0 +1,23 @@
+2025-04-17 21:03:15 error: Error: Authentication failed. Please log in again.
+2025-04-17 21:30:45 error: Registration error: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\Somna\Desktop\saas-pricing-engine (1)\server\src\controllers\auth.controller.ts:35:44
+
+  32 const { name, email, password } = req.body
+  33 
+  34 // Check if user already exists
+→ 35 const existingUser = await prisma.user.findUnique(
+Authentication failed against database server at `db.ifwcycypgwctlakvdpsn.supabase.co`, the provided database credentials for `postgres` are not valid.
+
+Please make sure to provide valid database credentials for the database server at `db.ifwcycypgwctlakvdpsn.supabase.co`.
+2025-04-17 21:30:45 error: PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+C:\Users\Somna\Desktop\saas-pricing-engine (1)\server\src\controllers\auth.controller.ts:35:44
+
+  32 const { name, email, password } = req.body
+  33 
+  34 // Check if user already exists
+→ 35 const existingUser = await prisma.user.findUnique(
+Authentication failed against database server at `db.ifwcycypgwctlakvdpsn.supabase.co`, the provided database credentials for `postgres` are not valid.
+
+Please make sure to provide valid database credentials for the database server at `db.ifwcycypgwctlakvdpsn.supabase.co`.
