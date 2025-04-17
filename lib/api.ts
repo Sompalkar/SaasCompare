@@ -99,6 +99,10 @@ export const userAPI = {
     const response = await api.get("/user/comparisons")
     return response.data
   },
+  getSavedComparisonById: async (id: string) => {
+    const response = await api.get(`/user/comparisons/${id}`)
+    return response.data
+  },
   saveComparison: async (comparisonId: string, name: string) => {
     const response = await api.post("/user/comparisons", { comparisonId, name })
     return response.data
@@ -201,6 +205,26 @@ export const adminAPI = {
   },
   getScrapingJobStatus: async (id: string) => {
     const response = await api.get(`/scraping/jobs/${id}`)
+    return response.data
+  },
+}
+
+// Cloud Providers API
+export const cloudProvidersAPI = {
+  getAllProviders: async () => {
+    const response = await api.get("/cloud-providers")
+    return response.data
+  },
+  getProviderById: async (id: string) => {
+    const response = await api.get(`/cloud-providers/${id}`)
+    return response.data
+  },
+  compareProviders: async (providerIds: string[], serviceTypes?: string[]) => {
+    const response = await api.post("/cloud-providers/compare", { providerIds, serviceTypes })
+    return response.data
+  },
+  getServiceTypes: async () => {
+    const response = await api.get("/cloud-providers/service-types")
     return response.data
   },
 }

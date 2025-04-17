@@ -1,6 +1,7 @@
 import { Router } from "express"
 import {
   getUserComparisons,
+  getSavedComparisonById,
   saveComparison,
   deleteComparison,
   updateUserProfile,
@@ -13,6 +14,7 @@ const router = Router()
 
 // Protected routes
 router.get("/comparisons", getUserComparisons)
+router.get("/comparisons/:id", getSavedComparisonById)
 router.post("/comparisons", validateRequest(saveComparisonSchema), saveComparison)
 router.delete("/comparisons/:id", deleteComparison)
 router.get("/reports", getUserReports)

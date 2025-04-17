@@ -9,7 +9,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "SaaS Compare - Compare SaaS Pricing and Features",
   description: "Find the best SaaS tools for your business by comparing pricing, features, and limitations.",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -25,6 +24,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-
-import './globals.css'

@@ -25,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "pdfkit": "^0.14.0",
+    "pptxgenjs": "^3.12.0",
     "puppeteer": "^22.3.0",
     "stripe": "^14.17.0",
     "winston": "^3.11.0",

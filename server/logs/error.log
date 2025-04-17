@@ -21,3 +21,5 @@ C:\Users\Somna\Desktop\saas-pricing-engine (1)\server\src\controllers\auth.contr
 Authentication failed against database server at `db.ifwcycypgwctlakvdpsn.supabase.co`, the provided database credentials for `postgres` are not valid.
 
 Please make sure to provide valid database credentials for the database server at `db.ifwcycypgwctlakvdpsn.supabase.co`.
+2025-04-18 01:26:34 error: Error: Saved comparison not found
+2025-04-18 01:26:35 error: Error: Saved comparison not found

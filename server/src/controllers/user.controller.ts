@@ -42,6 +42,47 @@ export const getUserComparisons = async (req: Request, res: Response, next: Next
   }
 }
 
+// Get a specific saved comparison by ID
+export const getSavedComparisonById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.id
+    const { id } = req.params
+
+    const savedComparison = await prisma.savedComparison.findFirst({
+      where: {
+        id,
+        userId,
+      },
+      include: {
+        comparison: {
+          include: {
+            tools: {
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+                category: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!savedComparison) {
+      return next(new AppError("Saved comparison not found", 404))
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: savedComparison,
+    })
+  } catch (error) {
+    logger.error("Get saved comparison by ID error:", error)
+    next(error)
+  }
+}
+
 // Save a comparison
 export const saveComparison = async (req: Request, res: Response, next: NextFunction) => {
   try {

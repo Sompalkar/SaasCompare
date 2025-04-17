@@ -51,6 +51,11 @@ enum ReportFormat {
   EXCEL
 }
 
+enum ComparisonType {
+  SAAS_TOOL
+  CLOUD_PROVIDER
+}
+
 model User {
   id              String    @id @default(uuid())
   name            String
@@ -137,10 +142,63 @@ model Integration {
   saasTools       SaasTool[]
 }
 
+model CloudProvider {
+  id              String    @id @default(uuid())
+  name            String
+  description     String
+  logo            String
+  website         String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  services        CloudService[]
+}
+
+model CloudService {
+  id              String    @id @default(uuid())
+  name            String
+  type            String    // e.g., "Compute", "Storage", "Database", etc.
+  description     String
+  providerId      String
+  
+  // Free tier pricing and features
+  freePrice       Float?
+  freeFeatures    String[]
+  freeLimitations String[]
+  
+  // Basic tier pricing and features
+  basicPrice      Float?
+  basicFeatures   String[]
+  basicLimitations String[]
+  
+  // Standard tier pricing and features
+  standardPrice   Float?
+  standardFeatures String[]
+  standardLimitations String[]
+  
+  // Premium tier pricing and features
+  premiumPrice    Float?
+  premiumFeatures String[]
+  premiumLimitations String[]
+  
+  // Enterprise tier pricing and features
+  enterprisePrice Float?
+  enterpriseFeatures String[]
+  enterpriseLimitations String[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  provider        CloudProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
 model Comparison {
   id              String    @id @default(uuid())
   userId          String?
   features        String[]
+  metadata        Json?     // For storing additional data like comparison type
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

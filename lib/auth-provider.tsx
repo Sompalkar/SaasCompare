@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { authAPI } from "./api"
 import { useToast } from "@/hooks/use-toast"
 
@@ -28,28 +28,52 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
   const { toast } = useToast()
+
+  // Prevent hydration errors by only running on client
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     // Check if user is logged in
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem("token")
-        if (token) {
-          const { user } = await authAPI.getCurrentUser()
-          setUser(user)
+        // Only run this on the client side
+        if (typeof window !== "undefined") {
+          const token = localStorage.getItem("token")
+          if (token) {
+            try {
+              const { user } = await authAPI.getCurrentUser()
+              setUser(user)
+            } catch (error) {
+              console.error("Authentication error:", error)
+              localStorage.removeItem("token")
+
+              // Redirect to login if on a protected route
+              if (pathname?.startsWith("/dashboard")) {
+                router.push("/auth/login")
+              }
+            }
+          } else if (pathname?.startsWith("/dashboard")) {
+            // Redirect to login if on a protected route and no token
+            router.push("/auth/login")
+          }
         }
       } catch (error) {
         console.error("Authentication error:", error)
-        localStorage.removeItem("token")
       } finally {
         setLoading(false)
       }
     }
 
-    checkAuth()
-  }, [])
+    if (mounted) {
+      checkAuth()
+    }
+  }, [mounted, pathname, router])
 
   const login = async (email: string, password: string) => {
     try {
@@ -115,6 +139,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Don't render children until mounted to prevent hydration errors
+  if (!mounted) {
+    return null
   }
 
   return (

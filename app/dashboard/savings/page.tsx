@@ -49,19 +49,17 @@ const categoryData = [
 ]
 
 export default function SavingsPage() {
-  const { user } = useAuth();
-  const [timeframe, setTimeframe] = useState("yearly");
+  const { user } = useAuth()
+  const [timeframe, setTimeframe] = useState("yearly")
 
   // Check if user can access advanced savings features
-  const canAccessAdvancedFeatures = user?.plan !== "free";
+  const canAccessAdvancedFeatures = user?.plan !== "free"
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Cost Savings</h1>
-        <p className="text-muted-foreground">
-          Track potential savings across your SaaS stack
-        </p>
+        <p className="text-muted-foreground">Track potential savings across your SaaS stack</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -72,9 +70,7 @@ export default function SavingsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatPrice(1200)}/year</div>
-            <p className="text-xs text-muted-foreground">
-              Based on your current comparisons
-            </p>
+            <p className="text-xs text-muted-foreground">Based on your current comparisons</p>
           </CardContent>
         </Card>
         <Card>
@@ -84,9 +80,7 @@ export default function SavingsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatPrice(3300)}/year</div>
-            <p className="text-xs text-muted-foreground">
-              Across all categories
-            </p>
+            <p className="text-xs text-muted-foreground">Across all categories</p>
           </CardContent>
         </Card>
         <Card>
@@ -96,9 +90,7 @@ export default function SavingsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatPrice(2100)}/year</div>
-            <p className="text-xs text-muted-foreground">
-              Based on optimal tools
-            </p>
+            <p className="text-xs text-muted-foreground">Based on optimal tools</p>
           </CardContent>
         </Card>
         <Card>
@@ -108,9 +100,7 @@ export default function SavingsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">36%</div>
-            <p className="text-xs text-muted-foreground">
-              Potential cost reduction
-            </p>
+            <p className="text-xs text-muted-foreground">Potential cost reduction</p>
           </CardContent>
         </Card>
       </div>
@@ -146,9 +136,7 @@ export default function SavingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Savings Over Time</CardTitle>
-              <CardDescription>
-                Potential savings based on your comparisons
-              </CardDescription>
+              <CardDescription>Potential savings based on your comparisons</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
@@ -164,14 +152,9 @@ export default function SavingsPage() {
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(value) => `$${value}`} />
-                    <Tooltip formatter={(value) => [`$${value}`, "Savings"]} />
-                    <Area
-                      type="monotone"
-                      dataKey="savings"
-                      stroke="#10b981"
-                      fill="#10b98133"
-                    />
+                    <YAxis tickFormatter={(value) => `${value}`} />
+                    <Tooltip formatter={(value) => [`${value}`, "Savings"]} />
+                    <Area type="monotone" dataKey="savings" stroke="#10b981" fill="#10b98133" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -182,9 +165,7 @@ export default function SavingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Top Saving Opportunities</CardTitle>
-                <CardDescription>
-                  Categories with highest potential savings
-                </CardDescription>
+                <CardDescription>Categories with highest potential savings</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -192,9 +173,7 @@ export default function SavingsPage() {
                     <div key={index} className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{category.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Current: {formatPrice(category.current)}/year
-                        </p>
+                        <p className="text-sm text-muted-foreground">Current: {formatPrice(category.current)}/year</p>
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-green-500">
@@ -221,9 +200,7 @@ export default function SavingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Savings Summary</CardTitle>
-                <CardDescription>
-                  Breakdown of potential savings
-                </CardDescription>
+                <CardDescription>Breakdown of potential savings</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -256,9 +233,7 @@ export default function SavingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Savings by Category</CardTitle>
-              <CardDescription>
-                Compare current vs. recommended spend across categories
-              </CardDescription>
+              <CardDescription>Compare current vs. recommended spend across categories</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
@@ -274,8 +249,8 @@ export default function SavingsPage() {
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
-                    <YAxis tickFormatter={(value) => `$${value}`} />
-                    <Tooltip formatter={(value) => [`$${value}`, ""]} />
+                    <YAxis tickFormatter={(value) => `${value}`} />
+                    <Tooltip formatter={(value) => [`${value}`, ""]} />
                     <Legend />
                     <Bar dataKey="current" name="Current Spend" fill="#6366f1" />
                     <Bar dataKey="recommended" name="Recommended Spend" fill="#10b981" />
@@ -291,7 +266,8 @@ export default function SavingsPage() {
                 <CardHeader className="pb-2">
                   <CardTitle>{category.name}</CardTitle>
                   <CardDescription>
-                    {Math.round(((category.current - category.recommended) / category.current) * 100)}% potential savings
+                    {Math.round(((category.current - category.recommended) / category.current) * 100)}% potential
+                    savings
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -311,4 +287,134 @@ export default function SavingsPage() {
                       </span>
                     </div>
                   </div>
-                  <Button variant="outline"\
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+        <TabsContent value="recommendations" className="space-y-4">
+          {canAccessAdvancedFeatures ? (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Personalized Recommendations</CardTitle>
+                  <CardDescription>Based on your usage patterns and requirements</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                      <h3 className="text-lg font-medium mb-2">CRM Recommendation</h3>
+                      <p className="mb-2">
+                        Switch from Salesforce Enterprise ($150/user/month) to HubSpot Professional ($80/user/month) for
+                        your team of 10.
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-green-500 font-medium">Save $8,400/year</span>
+                        <Button size="sm">View Comparison</Button>
+                      </div>
+                    </div>
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                      <h3 className="text-lg font-medium mb-2">Project Management Recommendation</h3>
+                      <p className="mb-2">
+                        Consolidate your Asana and Monday.com subscriptions to ClickUp Business ($12/user/month) for
+                        your team of 25.
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-green-500 font-medium">Save $6,000/year</span>
+                        <Button size="sm">View Comparison</Button>
+                      </div>
+                    </div>
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                      <h3 className="text-lg font-medium mb-2">Marketing Tools Recommendation</h3>
+                      <p className="mb-2">
+                        Replace your separate email marketing and social media tools with an all-in-one solution like
+                        HubSpot Marketing Hub.
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-green-500 font-medium">Save $4,800/year</span>
+                        <Button size="sm">View Comparison</Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Implementation Plan</CardTitle>
+                  <CardDescription>Suggested timeline for implementing recommendations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="flex">
+                      <div className="flex flex-col items-center mr-4">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                          <span className="text-indigo-600 dark:text-indigo-400 font-medium">1</span>
+                        </div>
+                        <div className="h-full w-0.5 bg-indigo-100 dark:bg-indigo-900 mt-2"></div>
+                      </div>
+                      <div className="pb-6">
+                        <h3 className="text-lg font-medium">Month 1: CRM Migration</h3>
+                        <p className="text-muted-foreground mt-1">
+                          Begin data migration from Salesforce to HubSpot. Run both systems in parallel for 30 days.
+                        </p>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          View Migration Guide
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      <div className="flex flex-col items-center mr-4">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                          <span className="text-indigo-600 dark:text-indigo-400 font-medium">2</span>
+                        </div>
+                        <div className="h-full w-0.5 bg-indigo-100 dark:bg-indigo-900 mt-2"></div>
+                      </div>
+                      <div className="pb-6">
+                        <h3 className="text-lg font-medium">Month 2-3: Project Management Consolidation</h3>
+                        <p className="text-muted-foreground mt-1">
+                          Set up ClickUp workspaces and migrate projects from Asana and Monday.com.
+                        </p>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          View Migration Guide
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      <div className="flex flex-col items-center mr-4">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                          <span className="text-indigo-600 dark:text-indigo-400 font-medium">3</span>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium">Month 4: Marketing Tools Integration</h3>
+                        <p className="text-muted-foreground mt-1">
+                          Implement HubSpot Marketing Hub and migrate email lists and campaigns.
+                        </p>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          View Migration Guide
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="rounded-full bg-muted p-3 mb-4">
+                <LineChart className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Upgrade to Access Recommendations</h2>
+              <p className="text-muted-foreground max-w-md mb-6">
+                Get personalized recommendations and implementation plans to maximize your cost savings.
+              </p>
+              <Link href="/dashboard/subscription">
+                <Button>Upgrade to Pro</Button>
+              </Link>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
