@@ -1,0 +1,298 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteComparison = exports.updateComparisonName = exports.getAllComparisons = exports.getComparisonById = exports.compareCloudProviders = exports.getCloudProviderById = exports.getAllCloudProviders = void 0;
+const client_1 = require("@prisma/client");
+const zod_1 = require("zod");
+const prisma = new client_1.PrismaClient();
+// Get all cloud providers
+const getAllCloudProviders = async (req, res) => {
+    try {
+        const providers = await prisma.cloudProvider.findMany({
+            include: {
+                services: true,
+            },
+        });
+        return res.status(200).json({ success: true, data: providers });
+    }
+    catch (error) {
+        console.error("Error fetching cloud providers:", error);
+        return res.status(500).json({ success: false, message: "Failed to fetch cloud providers" });
+    }
+};
+exports.getAllCloudProviders = getAllCloudProviders;
+// Get cloud provider by ID
+const getCloudProviderById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const provider = await prisma.cloudProvider.findUnique({
+            where: { id },
+            include: {
+                services: true,
+            },
+        });
+        if (!provider) {
+            return res.status(404).json({ success: false, message: "Cloud provider not found" });
+        }
+        return res.status(200).json({ success: true, data: provider });
+    }
+    catch (error) {
+        console.error("Error fetching cloud provider:", error);
+        return res.status(500).json({ success: false, message: "Failed to fetch cloud provider" });
+    }
+};
+exports.getCloudProviderById = getCloudProviderById;
+// Compare cloud providers
+const compareCloudProviders = async (req, res) => {
+    try {
+        const { providerIds, serviceTypes } = req.body;
+        const userId = req.user?.id; // Optional, user might not be logged in
+        // Validate input
+        const schema = zod_1.z.object({
+            providerIds: zod_1.z.array(zod_1.z.string()).min(1, "At least one provider ID is required"),
+            serviceTypes: zod_1.z.array(zod_1.z.string()).optional(),
+        });
+        const validation = schema.safeParse(req.body);
+        if (!validation.success) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation failed",
+                errors: validation.error.errors,
+            });
+        }
+        // Get providers with services
+        const providers = await prisma.cloudProvider.findMany({
+            where: {
+                id: {
+                    in: providerIds,
+                },
+            },
+            include: {
+                services: serviceTypes?.length
+                    ? {
+                        where: {
+                            type: {
+                                in: serviceTypes,
+                            },
+                        },
+                    }
+                    : true,
+            },
+        });
+        if (providers.length === 0) {
+            return res.status(404).json({ success: false, message: "No cloud providers found" });
+        }
+        // Extract all service types for comparison
+        const allServiceTypes = new Set();
+        providers.forEach((provider) => {
+            provider.services.forEach((service) => {
+                allServiceTypes.add(service.type);
+            });
+        });
+        // Create comparison data
+        const comparisonData = {
+            providers: providers.map((provider) => ({
+                id: provider.id,
+                name: provider.name,
+                logo: provider.logo,
+                services: provider.services.map((service) => ({
+                    id: service.id,
+                    name: service.name,
+                    type: service.type,
+                    description: service.description,
+                    pricing: {
+                        free: service.freePrice,
+                        basic: service.basicPrice,
+                        standard: service.standardPrice,
+                        premium: service.premiumPrice,
+                        enterprise: service.enterprisePrice,
+                    },
+                    features: {
+                        free: service.freeFeatures,
+                        basic: service.basicFeatures,
+                        standard: service.standardFeatures,
+                        premium: service.premiumFeatures,
+                        enterprise: service.enterpriseFeatures,
+                    },
+                    limitations: {
+                        free: service.freeLimitations,
+                        basic: service.basicLimitations,
+                        standard: service.standardLimitations,
+                        premium: service.premiumLimitations,
+                        enterprise: service.enterpriseLimitations,
+                    },
+                })),
+            })),
+            serviceTypes: Array.from(allServiceTypes),
+        };
+        // Save comparison if user is logged in
+        let savedComparison = null;
+        if (userId) {
+            const comparison = await prisma.comparison.create({
+                data: {
+                    userId,
+                    features: Array.from(allServiceTypes),
+                    metadata: {
+                        type: "CLOUD_PROVIDER",
+                        providerIds,
+                        serviceTypes: Array.from(allServiceTypes),
+                        comparisonData,
+                    },
+                },
+            });
+            savedComparison = comparison.id;
+        }
+        return res.status(200).json({
+            success: true,
+            data: {
+                comparison: comparisonData,
+                savedComparisonId: savedComparison,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error comparing cloud providers:", error);
+        return res.status(500).json({ success: false, message: "Failed to compare cloud providers" });
+    }
+};
+exports.compareCloudProviders = compareCloudProviders;
+// Get comparison by ID
+const getComparisonById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const comparison = await prisma.comparison.findUnique({
+            where: { id },
+        });
+        if (!comparison) {
+            return res.status(404).json({ success: false, message: "Comparison not found" });
+        }
+        // Parse metadata to get comparison data
+        const metadata = comparison.metadata;
+        const comparisonData = metadata?.comparisonData || {};
+        return res.status(200).json({
+            success: true,
+            data: {
+                id: comparison.id,
+                features: comparison.features,
+                comparisonData,
+                createdAt: comparison.createdAt,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error fetching comparison:", error);
+        return res.status(500).json({ success: false, message: "Failed to fetch comparison" });
+    }
+};
+exports.getComparisonById = getComparisonById;
+// Get all comparisons for a user
+const getAllComparisons = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const comparisons = await prisma.comparison.findMany({
+            where: {
+                userId,
+                metadata: {
+                    path: ["type"],
+                    equals: "CLOUD_PROVIDER",
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
+        // Format response
+        const formattedComparisons = comparisons.map((comparison) => {
+            const metadata = comparison.metadata;
+            return {
+                id: comparison.id,
+                features: comparison.features,
+                providerIds: metadata?.providerIds || [],
+                serviceTypes: metadata?.serviceTypes || [],
+                createdAt: comparison.createdAt,
+            };
+        });
+        return res.status(200).json({ success: true, data: formattedComparisons });
+    }
+    catch (error) {
+        console.error("Error fetching comparisons:", error);
+        return res.status(500).json({ success: false, message: "Failed to fetch comparisons" });
+    }
+};
+exports.getAllComparisons = getAllComparisons;
+// Update comparison name
+const updateComparisonName = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        const userId = req.user.id;
+        // Validate input
+        if (!name) {
+            return res.status(400).json({ success: false, message: "Name is required" });
+        }
+        // Check if comparison exists and belongs to user
+        const existingComparison = await prisma.comparison.findFirst({
+            where: {
+                id,
+                userId,
+            },
+        });
+        if (!existingComparison) {
+            return res.status(404).json({ success: false, message: "Comparison not found or not owned by user" });
+        }
+        // Update metadata with name
+        const metadata = existingComparison.metadata || {};
+        metadata.name = name;
+        // Update comparison
+        const updatedComparison = await prisma.comparison.update({
+            where: { id },
+            data: {
+                metadata,
+            },
+        });
+        return res.status(200).json({
+            success: true,
+            data: {
+                id: updatedComparison.id,
+                name,
+                features: updatedComparison.features,
+                metadata: updatedComparison.metadata,
+                createdAt: updatedComparison.createdAt,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error updating comparison name:", error);
+        return res.status(500).json({ success: false, message: "Failed to update comparison name" });
+    }
+};
+exports.updateComparisonName = updateComparisonName;
+// Delete comparison
+const deleteComparison = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        // Check if comparison exists and belongs to user
+        const existingComparison = await prisma.comparison.findFirst({
+            where: {
+                id,
+                userId,
+            },
+        });
+        if (!existingComparison) {
+            return res.status(404).json({ success: false, message: "Comparison not found or not owned by user" });
+        }
+        // Delete comparison
+        await prisma.comparison.delete({
+            where: { id },
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Comparison deleted successfully",
+        });
+    }
+    catch (error) {
+        console.error("Error deleting comparison:", error);
+        return res.status(500).json({ success: false, message: "Failed to delete comparison" });
+    }
+};
+exports.deleteComparison = deleteComparison;

@@ -1,0 +1,342 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+}
+
+enum ScrapingJobType {
+  PRICING
+  FEATURES
+  INTEGRATIONS
+}
+
+enum ScrapingJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ScrapingJobSchedule {
+  ONCE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum ReportFormat {
+  PDF
+  CSV
+  EXCEL
+}
+
+enum ComparisonType {
+  SAAS_TOOL
+  CLOUD_PROVIDER
+}
+
+model User {
+  id                     String    @id @default(uuid())
+  name                   String
+  email                  String    @unique
+  password               String
+  role                   UserRole  @default(USER)
+  plan                   UserPlan  @default(FREE)
+  company                String?
+  jobTitle               String?
+  stripeCustomerId       String?
+  isActive               Boolean   @default(true)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  priceAlertSubscription Boolean   @default(false)
+  priceAlertThreshold    Float     @default(5)  // Default 5% threshold
+  weeklyDigestSubscription Boolean @default(false)
+
+  // Relations
+  comparisons            Comparison[]
+  savedComparisons       SavedComparison[]
+  reports                Report[]
+  subscription           Subscription?
+  scrapingJobs           ScrapingJob[]
+  notifications          Notification[]
+  toolSubscriptions      ToolSubscription[]
+}
+
+model SaasTool {
+  id              String    @id @default(uuid())
+  name            String
+  description     String
+  logo            String
+  website         String
+  category        String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  pricingPlans    PricingPlan[]
+  integrations    Integration[]
+  comparisons     Comparison[]
+  scrapingJobs    ScrapingJob[]
+  pricingHistory  PricingHistory[]
+  priceChangeLogs PriceChangeLog[]
+  toolSubscriptions ToolSubscription[]
+}
+
+model PricingPlan {
+  id              String    @id @default(uuid())
+  name            String
+  price           Float?
+  isCustomPricing Boolean   @default(false)
+  saasToolId      String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  saasTool        SaasTool  @relation(fields: [saasToolId], references: [id], onDelete: Cascade)
+  features        Feature[]
+  limitations     Limitation[]
+}
+
+model Feature {
+  id              String    @id @default(uuid())
+  name            String
+  pricingPlanId   String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  pricingPlan     PricingPlan @relation(fields: [pricingPlanId], references: [id], onDelete: Cascade)
+}
+
+model Limitation {
+  id              String    @id @default(uuid())
+  name            String
+  pricingPlanId   String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  pricingPlan     PricingPlan @relation(fields: [pricingPlanId], references: [id], onDelete: Cascade)
+}
+
+model Integration {
+  id              String    @id @default(uuid())
+  name            String    @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  saasTools       SaasTool[]
+}
+
+model CloudProvider {
+  id              String    @id @default(uuid())
+  name            String
+  description     String
+  logo            String
+  website         String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  services        CloudService[]
+}
+
+model CloudService {
+  id              String    @id @default(uuid())
+  name            String
+  type            String    // e.g., "Compute", "Storage", "Database", etc.
+  description     String
+  providerId      String
+  
+  // Free tier pricing and features
+  freePrice       Float?
+  freeFeatures    String[]
+  freeLimitations String[]
+  
+  // Basic tier pricing and features
+  basicPrice      Float?
+  basicFeatures   String[]
+  basicLimitations String[]
+  
+  // Standard tier pricing and features
+  standardPrice   Float?
+  standardFeatures String[]
+  standardLimitations String[]
+  
+  // Premium tier pricing and features
+  premiumPrice    Float?
+  premiumFeatures String[]
+  premiumLimitations String[]
+  
+  // Enterprise tier pricing and features
+  enterprisePrice Float?
+  enterpriseFeatures String[]
+  enterpriseLimitations String[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  provider        CloudProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
+model Comparison {
+  id              String    @id @default(uuid())
+  userId          String?
+  features        String[]
+  metadata        Json?     // For storing additional data like comparison type
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user            User?     @relation(fields: [userId], references: [id])
+  tools           SaasTool[]
+  savedComparisons SavedComparison[]
+  reports         Report[]
+}
+
+model SavedComparison {
+  id              String    @id @default(uuid())
+  name            String
+  userId          String
+  comparisonId    String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comparison      Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id              String    @id @default(uuid())
+  userId          String
+  comparisonId    String
+  format          ReportFormat
+  fileUrl         String
+  filename        String
+  metadata        Json?     // Added metadata field for storing report details
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comparison      Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                  String    @id @default(uuid())
+  userId              String    @unique
+  planId              String
+  stripeSubscriptionId String?
+  stripeCustomerId    String?
+  status              SubscriptionStatus
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  canceledAt          DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScrapingJob {
+  id              String    @id @default(uuid())
+  url             String
+  toolId          String?
+  type            ScrapingJobType
+  status          ScrapingJobStatus
+  schedule        ScrapingJobSchedule
+  result          String?
+  error           String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdBy       String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  tool            SaasTool? @relation(fields: [toolId], references: [id])
+  createdByUser   User      @relation(fields: [createdBy], references: [id])
+}
+
+// New models for price monitoring
+model PricingHistory {
+  id              String    @id @default(uuid())
+  toolId          String
+  tier            String    // e.g., "free", "starter", "professional", "enterprise"
+  plan            String    // e.g., "monthly", "annually"
+  price           Float
+  isLatest        Boolean   @default(true)
+  timestamp       DateTime  @default(now())
+  
+  // Relations
+  tool            SaasTool  @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  
+  @@index([toolId, tier, plan])
+}
+
+model PriceChangeLog {
+  id                String    @id @default(uuid())
+  toolId            String
+  tier              String    // e.g., "free", "starter", "professional", "enterprise"
+  plan              String    // e.g., "monthly", "annually"
+  oldPrice          Float
+  newPrice          Float
+  changePercentage  Float
+  timestamp         DateTime  @default(now())
+  
+  // Relations
+  tool              SaasTool  @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  
+  @@index([toolId, timestamp])
+}
+
+model Notification {
+  id              String    @id @default(uuid())
+  userId          String
+  type            String    // e.g., "PRICE_CHANGE", "FEATURE_CHANGE", etc.
+  content         String    // JSON content of the notification
+  read            Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, type, read])
+}
+
+model ToolSubscription {
+  id              String    @id @default(uuid())
+  userId          String
+  toolId          String
+  createdAt       DateTime  @default(now())
+  
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tool            SaasTool  @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, toolId])
+}
